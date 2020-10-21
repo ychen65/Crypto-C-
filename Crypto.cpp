@@ -2,8 +2,8 @@
 //  Crypto.cpp
 //  CS331_HW04
 //
-//  Created by Chenyu Wang on 11/14/19.
-//  Copyright © 2019 chenyu wang. All rights reserved.
+//  Created by Yongqiang Chen on 11/14/19.
+//  Copyright © 2019 Yongqiang Chen. All rights reserved.
 //
 
 #include "Crypto.h"
