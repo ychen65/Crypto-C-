@@ -1,12 +1,12 @@
 // 
-// Programer: Chenyu Wang
+// Programer: Yongqiang Chen
 //  main.cpp
 //  CS331_HW04
 //  Brief Description: it is a program about encryption and decryption. Using shift, unshift, permute, and unpermute.
 //
-//  Created by Chenyu Wang on 11/14/19.
+//  Created by Yongqiang Chen on 11/14/19.
 //  Last modification on 11/16/19.
-//  Copyright © 2019 chenyu wang. All rights reserved.
+//  Copyright © 2019 Yongqiang Chen. All rights reserved.
 //
 
 #include <QTextStream>
