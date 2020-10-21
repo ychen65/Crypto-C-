@@ -1,0 +1,202 @@
+Script started on 2019-11-16 00:06:02-0500
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ cat Crypto.h
+//
+//  Crypto.hpp
+//  CS331_HW04
+//
+//  Created by Chenyu Wang on 11/14/19.
+//  Copyright © 2019 chenyu wang. All rights reserved.
+//
+
+#ifndef Crypto_h_
+#define Crypto_h_
+
+#include <QString>
+#include <QVector>
+
+class Crypto{
+public:
+    Crypto(ushort key, QString opseq, ushort charsiz);
+    QString encrypt(const QString& str);
+    QString decrypt(const QString& str);
+private:
+    ushort m_Key;
+    QString m_OpSequence;
+    ushort m_CharSetSize;
+    QVector<int> m_Perm;
+    QString shift(const QString& str);
+    QString unshift(const QString& str);
+    QString permute(const QString& str);
+    QString unpermute(const QString& str);
+    static int limitedRand(int max);
+    QVector<int> randomPerm(int n);
+};
+
+#endif /* Crypto_hpp */
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ cat Crypto.cpp
+//
+//  Crypto.cpp
+//  CS331_HW04
+//
+//  Created by Chenyu Wang on 11/14/19.
+//  Copyright © 2019 chenyu wang. All rights reserved.
+//
+
+#include "Crypto.h"
+#include <cstdlib>
+#include <QChar>
+
+Crypto::Crypto(ushort key, QString opseq, ushort charsiz){
+    m_Key = key;
+    m_OpSequence =opseq;
+    m_CharSetSize = charsiz;
+}
+
+int Crypto::limitedRand(int max){
+    return rand()%max;
+}
+
+QVector<int> Crypto::randomPerm(int n){
+    srandom(m_Key);
+    int k;
+    m_Perm.clear();
+    m_Perm.resize(n);
+    for (int i=0; i<n; i++){
+        k=limitedRand(n);
+        m_Perm[i]=k;
+    }
+    return m_Perm;
+}
+
+QString Crypto::shift(const QString& text){
+    srandom(m_Key);
+    ushort j;
+    ushort shiftText;
+    QString s;
+    int r=limitedRand(m_CharSetSize);
+    for (int i=0;i<text.length();i++){
+        j=text[i].toAscii();
+        shiftText=(j+r)%m_CharSetSize;
+        s+=shiftText;
+    }
+    return s;
+}
+
+QString Crypto::unshift(const QString& text){
+    srandom(m_Key);
+    ushort j;
+    ushort shiftText;
+    QString unstring;
+    int r=limitedRand(m_CharSetSize);
+    for (int i=0;i<text.length();i++){
+        shiftText=text[i].toAscii();
+        j=m_CharSetSize+shiftText-r;
+        unstring+=j;
+    }
+    return unstring;
+}
+
+QString Crypto::permute(const QString& text){
+    QString cstirng;
+    for (int i=0; i<text.length(); i++){
+        int index=m_Perm[i];
+        cstirng+=text.at(index);
+    }
+    return cstirng;
+}
+
+QString Crypto::unpermute(const QString& text){
+    QString unpermuteS;
+    for(int i=0; i<text.length();i++){
+        int index=m_Perm[i];
+        unpermuteS[index]=text[i];
+    }
+    return unpermuteS;
+}
+
+QString Crypto::encrypt(const QString& text){
+    randomPerm(text.length());
+    QString OriginalT=text;
+    QString cryptoS;
+    for(int i=0; i<m_OpSequence.length();i++){
+        if(m_OpSequence[i]=='p')
+            cryptoS=shift(OriginalT);
+        if(m_OpSequence[i]=='s')
+            cryptoS=permute(OriginalT);
+    }
+    return cryptoS;
+}
+
+QString Crypto::decrypt(const QString& text){
+    randomPerm(text.length());
+    QString newS=text;
+    QString decryptS;
+    for(int i=0; i<m_OpSequence.length();i++){
+        if(m_OpSequence[i]=='p')
+            decryptS=unshift(newS);
+        if(m_OpSequence[i]=='s')
+            decryptS=unpermute(newS);
+    }
+    return decryptS;    
+}
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ cat Crypto_client..cpp 
+// 
+// Programer: Chenyu Wang
+//  main.cpp
+//  CS331_HW04
+//  Brief Description: it is a program about encryption and decryption. Using shift, unshift, permute, and unpermute.
+//
+//  Created by Chenyu Wang on 11/14/19.
+//  Last modification on 11/16/19.
+//  Copyright © 2019 chenyu wang. All rights reserved.
+//
+
+#include <QTextStream>
+#include "Crypto.h"
+
+int main(){
+    QTextStream cout(stdout);
+    QString str1("asdfghjkl;QWERTYUIOP{}}|123456&*()_+zxcvnm,,, ./?");
+    QString str2;
+    
+    cout << "Original string: " << str1 << endl;
+    cout << "length: " << str1.length() << endl;
+    QString seqstr("pspsp");
+    ushort key(12579);
+    Crypto crypt(key, seqstr, 128);
+    str2 = crypt.encrypt(str1);
+    cout << "Encrypted string: " << str2 << endl;
+    cout << "Recovered string: " << crypt.decrypt(str2) << endl;
+    
+}
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ qmake -project 
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ qmake 
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ ls
+Crypto_client.cpp  Crypto.h        hw04script
+Crypto.cpp         CS331_HW04.pro  Makefile
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ cat CS331_HW04.proo 
+######################################################################
+# Automatically generated by qmake (2.01a) Sat Nov 16 00:06:42 2019
+######################################################################
+
+TEMPLATE = app
+TARGET = 
+DEPENDPATH += .
+INCLUDEPATH += .
+
+# Input
+HEADERS += Crypto.h
+SOURCES += Crypto.cpp Crypto_client.cpp
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ make 
+g++ -c -m64 -pipe -O2 -Wall -W -D_REENTRANT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED -I/usr/share/qt4/mkspecs/linux-g++-64 -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I. -o Crypto.o Crypto.cpp
+g++ -c -m64 -pipe -O2 -Wall -W -D_REENTRANT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED -I/usr/share/qt4/mkspecs/linux-g++-64 -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I. -o Crypto_client.o Crypto_client.cpp
+g++ -m64 -Wl,-O1 -o CS331_HW04 Crypto.o Crypto_client.o    -L/usr/lib/x86_64-linux-gnu -lQtGui -lQtCore -lpthread 
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ ./CS331_HW04 
+Original string: asdfghjkl;QWERTYUIOP{}}|123456&*()_+zxcvnm,,, ./?
+length: 49
+Encrypted string: `rcefgijk:PVDQSXTHNOz||{012345%)'(^*ywbuml+++-.>
+Recovered string: asdfghjkl;QWERTYUIOP{}}|123456&*()_+zxcvnm,,, ./?
+]0;chenyu@chenyu-VirtualBox: ~/CS/CS331_HW04[01;32mchenyu@chenyu-VirtualBox[00m:[01;34m~/CS/CS331_HW04[00m$ exit
+exit
+
+Script done on 2019-11-16 00:07:36-0500
